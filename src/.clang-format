@@ -1,4 +1,53 @@
-# Defines the Chromium style for automatic reformatting.
-# http://clang.llvm.org/docs/ClangFormatStyleOptions.html
-BasedOnStyle: Chromium
-Standard: Cpp11
+BasedOnStyle: LLVM
+UseTab: Never         # change to 'always' if you want tabs instead of spaces
+IndentWidth: 4        
+TabWidth: 4
+ContinuationIndentWidth: 8    # this is like when you newline in the middle of writing a function call
+SeparateDefinitionBlocks: Leave     # Put always to force newlines inbetween any blocsk
+KeepEmptyLinesAtTheStartOfBlocks: false   # Self explanatory
+MaxEmptyLinesToKeep: 1              # force the above one to be N line gap at most
+AccessModifierOffset: -3            # This makes the access modifier (private...) poke out by 1 char 
+
+# this is pretty important, because it dictates whether or not clang-format will force a newline
+# or not. I think a lot of people do 80 chars. c++ or java kinda necessitate 100 imo
+ColumnLimit: 100
+
+
+# this bullshit does the alignment with comments and stuff.
+# I have no idea how it works
+AlignConsecutiveDeclarations:
+  Enabled: true
+  AcrossEmptyLines: false
+  AcrossComments: false
+  AlignCompound: true
+  PadOperators: true
+
+AlignTrailingComments: true       # self explanatory
+SpacesBeforeTrailingComments: 2
+
+
+BreakBeforeBraces: Attach       # foo{ instead of foo[newline]{, i.e K&R vs Allman. 
+                                # i think LLVM uses Allman (newline before '{') by default.
+
+# For switch statements:
+IndentCaseLabels: false
+IndentCaseBlocks: true
+
+# Allows single line switch statements
+AllowShortCaseLabelsOnASingleLine: true
+
+
+# Same thing but for functions (member and free)
+AllowShortFunctionsOnASingleLine: InlineOnly
+
+
+AllowShortBlocksOnASingleLine: Empty # This one is for like free standing blocks i think. {...}
+AllowShortIfStatementsOnASingleLine: WithoutElse  # Only allow single line if statements if there is no else clause
+AllowShortLoopsOnASingleLine: false               # Dont allow single line loops because thats retarded
+
+
+PointerAlignment: Left            # This is super opinionated. [int* foo] vs [int *foo].
+ReferenceAlignment: Pointer       # same thing but for int& foo vs int &foo
+SpaceBeforeParens: ControlStatements  # if (condition){ ... } vs if(condition){ ... }
+
+BreakBeforeBinaryOperators: None    # not a clue what this means
