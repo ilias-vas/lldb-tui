@@ -12,10 +12,14 @@ jobs:
       - name: Install LLDB (Linux)
         if: runner.os == 'Linux'
         run: sudo apt-get update && sudo apt-get install -y lldb liblldb-dev
-      - name: Install LLVM (macOS)
+      - name: Install LLDB (macOS)
         if: runner.os == 'macOS'
-        run: brew install llvm
+        run: brew install lldb
+      - name: Configure (macOS)
+        if: runner.os == 'macOS'
+        run: cmake -S . -B build -DCMAKE_BUILD_TYPE=Debug -DLLDB_ROOT="$(brew --prefix lldb)"
       - name: Configure
+        if: runner.os != 'macOS'
         run: cmake -S . -B build -DCMAKE_BUILD_TYPE=Debug
       - name: Build
         run: cmake --build build -j 4

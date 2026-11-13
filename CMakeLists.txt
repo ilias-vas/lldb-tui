@@ -26,13 +26,15 @@ FetchContent_MakeAvailable(cpptui)
 
 set(LLDB_ROOT "" CACHE PATH "LLDB/LLVM installation prefix")
 find_path(LLDB_INCLUDE_DIR lldb/API/LLDB.h
-  HINTS "${LLDB_ROOT}/include" /opt/homebrew/opt/llvm/include /usr/local/opt/llvm/include
+  HINTS "${LLDB_ROOT}/include" /opt/homebrew/opt/lldb/include /usr/local/opt/lldb/include
+        /opt/homebrew/opt/llvm/include /usr/local/opt/llvm/include
   PATHS /usr/lib/llvm-20/include /usr/lib/llvm-19/include /usr/lib/llvm-18/include /usr/lib/llvm-17/include /usr/lib/llvm-16/include /usr/lib/llvm-14/include)
 find_library(LLDB_LIBRARY NAMES lldb liblldb
-  HINTS "${LLDB_ROOT}/lib" /opt/homebrew/opt/llvm/lib /usr/local/opt/llvm/lib
+  HINTS "${LLDB_ROOT}/lib" /opt/homebrew/opt/lldb/lib /usr/local/opt/lldb/lib
+        /opt/homebrew/opt/llvm/lib /usr/local/opt/llvm/lib
   PATHS /usr/lib/llvm-20/lib /usr/lib/llvm-19/lib /usr/lib/llvm-18/lib /usr/lib/llvm-17/lib /usr/lib/llvm-16/lib /usr/lib/llvm-14/lib)
 if(NOT LLDB_INCLUDE_DIR OR NOT LLDB_LIBRARY)
-  message(FATAL_ERROR "LLDB development files required. Install LLVM (brew install llvm) or liblldb-dev; set -DLLDB_ROOT=/path/to/llvm if needed.")
+  message(FATAL_ERROR "LLDB development files required. Install LLDB (brew install lldb) or liblldb-dev; set -DLLDB_ROOT=/path/to/lldb if needed.")
 endif()
 
 add_library(debugger src/debugger.cpp)
@@ -45,9 +47,21 @@ if(APPLE)
   find_program(LLDB_DEBUGSERVER NAMES debugserver
     PATHS "${APPLE_DEVELOPER_DIR}/Library/PrivateFrameworks/LLDB.framework/Resources"
           "${APPLE_DEVELOPER_DIR}/../SharedFrameworks/LLDB.framework/Resources")
-  if(LLDB_DEBUGSERVER)
-    target_compile_definitions(debugger PRIVATE LLDB_TUI_DEBUGSERVER="${LLDB_DEBUGSERVER}")
+elseif(UNIX)
+  # Embedded liblldb cannot reliably locate lldb-server relative to our executable.
+  # Prefer the server beside the selected headers to keep LLDB versions matched.
+  get_filename_component(LLDB_PREFIX "${LLDB_INCLUDE_DIR}" DIRECTORY)
+  find_program(LLDB_DEBUGSERVER NAMES lldb-server
+    HINTS "${LLDB_ROOT}/bin" "${LLDB_PREFIX}/bin" NO_DEFAULT_PATH)
+  if(NOT LLDB_DEBUGSERVER)
+    find_program(LLDB_DEBUGSERVER NAMES lldb-server)
   endif()
+endif()
+if(LLDB_DEBUGSERVER)
+  target_compile_definitions(debugger PRIVATE LLDB_TUI_DEBUGSERVER="${LLDB_DEBUGSERVER}")
+  message(STATUS "LLDB debug server: ${LLDB_DEBUGSERVER}")
+else()
+  message(WARNING "LLDB debug server not found; set LLDB_DEBUGSERVER or the runtime LLDB_DEBUGSERVER_PATH to enable process launch.")
 endif()
 
 add_executable(lldb-tui src/main.cpp)
